@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>init-app</title>
+  <rect width="64" height="64" rx="16" fill="#1f1b18"/>
+  <path d="M31.8 17.5a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm-7.1 7.3v4.1h3v17.9h-3v4.1h14.2v-4.1h-3V24.8H24.7Z" fill="#d7b06e"/>
+  <path d="M45.5 13.5c3.2 3.8 5 8.7 5 13.9 0 12.5-10.1 22.6-22.6 22.6-5.2 0-10.1-1.8-13.9-5" fill="none" stroke="#c98a4b" stroke-width="3" stroke-linecap="round" opacity=".85"/>
+</svg>
