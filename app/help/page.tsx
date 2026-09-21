@@ -7,8 +7,7 @@ const sections = [
     description: "The smallest direct-generation setup needs a project name and framework.",
     rows: [
       ["name", "Required", "Names the generated project directory.", "Always provide a clear, import-safe project name.", "billing_api"],
-      ["--framework", "Required", "Selects the blueprint and framework-aware defaults.", "Choose the closest blueprint so folders, servers, and templates stay relevant.", "--framework fastapi"],
-      ["--app-name", "Optional", "Sets the application package name; defaults to core_app.", "Use a stable Python identifier when the project needs a named application package.", "--app-name payments"],
+      ["--framework", "Required", "Selects the Django blueprint and its framework-aware defaults.", "The web builder currently generates Django projects only.", "--framework django"],
       ["--apps", "Django only", "Creates and registers multiple Django application packages.", "Use when the project has separate domains such as catalog, billing, and users; the first name owns the primary generated routes.", "--apps catalog billing users"],
       ["--spec FILE", "Optional", "Loads a JSON project specification; direct flags override it.", "Use for repeatable team templates and automation.", "--spec project.json"],
     ],
@@ -18,7 +17,7 @@ const sections = [
     description: "These flags shape the generated code structure and how the project is expected to run.",
     rows: [
       ["--type", "Optional", "Selects standard, production, auto_config, or custom generation.", "Use standard for a clean start, production for operational layers, and custom for exact folder control.", "--type production"],
-      ["--server", "Optional", "Selects a framework-compatible runner.", "Match the framework: FastAPI commonly uses uvicorn; Flask commonly uses gunicorn or waitress.", "--server gunicorn"],
+      ["--server", "Optional", "Selects a Django-compatible runner.", "Use gunicorn, waitress, or wsgiref for the generated Django project.", "--server gunicorn"],
       ["--db", "Optional", "Selects sqlite, postgresql, mysql, mongodb, or none.", "Use sqlite for local work, PostgreSQL for production relational workloads, or none for framework-only projects.", "--db postgresql"],
       ["--drf", "Optional", "Enables Django REST Framework integration; Django only.", "Use when Django is serving an API with serializers, routers, and REST settings.", "--drf"],
       ["--venv y|n", "Optional", "Controls whether Init App creates a project virtual environment.", "Enable isolation for most local and team projects. Package tooling remains the user's choice.", "--venv y"],
@@ -30,7 +29,7 @@ const sections = [
     rows: [
       ["--folders", "Custom only", "Lists the folders to create.", "Use when the default architecture does not match the project boundary.", "--folders src services tests"],
       ["--packages", "Custom only", "Marks selected folders for __init__.py generation.", "Every package must also be listed in --folders; keep package initialization intentional.", "--packages src services"],
-      ["--gitignore-preset", "Optional", "Chooses framework, python, django, node, cpp, or minimal ignore rules.", "Use framework for automatic Python defaults or minimal for a deliberately small project.", "--gitignore-preset python"],
+      ["--gitignore-preset", "Optional", "Chooses framework, python, django, or minimal ignore rules.", "Use django for Django-specific generated files or minimal for a deliberately small project.", "--gitignore-preset django"],
       ["--gitignore / --ignore", "Optional", "Adds custom ignore patterns.", "Protect secrets, local data, generated assets, and machine-specific files.", "--gitignore .env.local uploads/ *.secret"],
       ["--no-rag-context", "Optional", "Disables the local safe file-inventory bundle.", "Keep the default enabled when local tooling needs project context; disable it for minimal output.", "--no-rag-context"],
     ],
@@ -63,10 +62,10 @@ const sections = [
 ];
 
 const recipes = [
-  ["Fast local API", "init-app orders-api -f fastapi -t standard --db sqlite --venv y --server uvicorn"],
-  ["Production service", "init-app billing-api -f fastapi -t production --db postgresql --venv y --server gunicorn --docker docker/Dockerfile --github .github/workflows/ci.yml"],
+  ["Local Django app", "init-app orders -f django -t standard --db sqlite --apps orders --venv y --server wsgiref"],
+  ["Production Django service", "init-app billing -f django -t production --db postgresql --apps billing users --venv y --server gunicorn --docker docker/Dockerfile --github .github/workflows/ci.yml"],
   ["Django REST API", "init-app catalog -f django -t production --db postgresql --drf --apps catalog billing --venv y --server gunicorn"],
-  ["Exact custom layout", "init-app worker -f fastapi -t custom --folders src services tests --packages src services --gitignore-preset python"],
+  ["Exact custom layout", "init-app worker -f django -t custom --apps worker --folders src services tests --packages src services --gitignore-preset django"],
 ];
 
 export default function HelpPage() {

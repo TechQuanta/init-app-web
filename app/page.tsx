@@ -20,25 +20,12 @@ import {
 
 const MCP_URL = "https://initapp.fastmcp.app/mcp";
 const MCP_INSPECTOR_COMMAND = `npx @modelcontextprotocol/inspector ${MCP_URL}`;
-const frameworks = [
-  "fastapi", "flask", "django", "bottle", "sanic", "falcon", "tornado", "pyramid", "others",
-  "base", "hp_cli", "data_pipeline", "dbt_analytics", "mlops_core", "rag_ai", "mcp",
-];
+const frameworks = ["django"];
 const strategies = ["standard", "production", "auto_config", "custom"];
 const databases = ["sqlite", "postgresql", "mysql", "mongodb", "none"];
 const frameworkServers: Record<string, string[]> = {
-  fastapi: ["uvicorn", "gunicorn"],
   django: ["gunicorn", "waitress", "wsgiref"],
-  flask: ["gunicorn", "waitress", "gevent", "wsgiref", "na"],
-  bottle: ["waitress", "gevent", "wsgiref", "na"],
-  sanic: ["na"],
-  falcon: ["gunicorn", "waitress", "wsgiref"],
-  tornado: ["na"],
-  pyramid: ["waitress", "gunicorn", "wsgiref"],
-  others: ["na"],
 };
-const noServerBlueprints = ["base", "hp_cli", "data_pipeline", "dbt_analytics", "mlops_core", "rag_ai", "mcp"];
-noServerBlueprints.forEach((blueprint) => { frameworkServers[blueprint] = ["na"]; });
 const virtualEnvOptions = ["y", "n"];
 const appCountOptions = Array.from({ length: 10 }, (_, index) => String(index + 1));
 const fileGroups = [
@@ -95,7 +82,7 @@ const steps = [
 ];
 
 const stats = [
-  { value: String(frameworks.length), label: "blueprints" },
+  { value: "1", label: "Django blueprint" },
   { value: "4", label: "strategies" },
   { value: "1", label: "command flow" },
   { value: "∞", label: "ideas" },
@@ -103,13 +90,12 @@ const stats = [
 
 export default function Page() {
   const [projectName, setProjectName] = useState("my-project");
-  const [framework, setFramework] = useState("fastapi");
+  const [framework, setFramework] = useState("django");
   const [strategy, setStrategy] = useState("standard");
   const [database, setDatabase] = useState("sqlite");
   const [server, setServer] = useState("uvicorn");
   const [virtualEnv, setVirtualEnv] = useState("y");
   const [drf, setDrf] = useState(false);
-  const [appName, setAppName] = useState("core_app");
   const [appNames, setAppNames] = useState(["core_app"]);
   const [folders, setFolders] = useState("");
   const [packages, setPackages] = useState("");
@@ -122,9 +108,9 @@ export default function Page() {
   const [copiedInspector, setCopiedInspector] = useState(false);
   const serverOptions = frameworkServers[framework] ?? ["na"];
   const selectedServer = serverOptions.includes(server) ? server : serverOptions[0];
-  const primaryAppName = framework === "django" ? (appNames[0] || "core_app") : (appName || "core_app");
-  const drfFlag = framework === "django" && drf ? " --drf" : "";
-  const gitignoreOptions = framework === "django" ? ["framework", "python", "django", "minimal"] : ["framework", "python", "minimal"];
+  const primaryAppName = appNames[0] || "core_app";
+  const drfFlag = drf ? " --drf" : "";
+  const gitignoreOptions = ["framework", "python", "django", "minimal"];
   const selectedGitignorePreset = gitignoreOptions.includes(gitignorePreset) ? gitignorePreset : "framework";
 
   const command = useMemo(
@@ -141,7 +127,7 @@ export default function Page() {
         "--gitignore-preset", selectedGitignorePreset,
       ];
       if (drfFlag) parts.push(drfFlag.trim());
-      if (framework === "django") parts.push("--apps", ...appNames);
+      parts.push("--apps", ...appNames);
       if (strategy === "custom" && folders.trim()) parts.push("--folders", ...folders.split(",").map((folder) => folder.trim()).filter(Boolean));
       if (strategy === "custom" && packages.trim()) parts.push("--packages", ...packages.split(",").map((folder) => folder.trim()).filter(Boolean));
       if (!createRagContext) parts.push("--no-rag-context");
@@ -153,7 +139,7 @@ export default function Page() {
       });
       return parts.join(" ");
     },
-    [projectName, framework, strategy, database, selectedServer, virtualEnv, appName, appNames, primaryAppName, selectedGitignorePreset, drfFlag, folders, packages, createRagContext, createHere, outputDir, selectedFiles],
+    [projectName, framework, strategy, database, selectedServer, virtualEnv, appNames, primaryAppName, selectedGitignorePreset, drfFlag, folders, packages, createRagContext, createHere, outputDir, selectedFiles],
   );
 
   const copyCommand = async () => {
@@ -299,46 +285,37 @@ export default function Page() {
             <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />
             <SelectField label="Create virtual env (--venv)" value={virtualEnv} options={virtualEnvOptions} onChange={setVirtualEnv} />
             <SelectField label="Gitignore preset (--gitignore-preset)" value={selectedGitignorePreset} options={gitignoreOptions} onChange={setGitignorePreset} />
-            {framework !== "django" ? (
-              <label className="field">
-                <span>App package name (--app-name)</span>
-                <input value={appName} onChange={(event) => setAppName(event.target.value)} placeholder="core_app" />
-              </label>
-            ) : (
-              <div className="django-apps field-wide">
-                <SelectField
-                  label="Number of Django apps (--apps)"
-                  value={String(appNames.length)}
-                  options={appCountOptions}
-                  onChange={(value) => {
-                    const count = Number(value);
-                    setAppNames((current) => Array.from({ length: count }, (_, index) => current[index] || `app_${index + 1}`));
-                  }}
-                />
-                <div className="django-app-list">
-                  {appNames.map((name, index) => (
-                    <label key={`${index}-${name}`} className="field">
-                      <span>App {index + 1} name (--apps)</span>
-                      <input
-                        value={name}
-                        onChange={(event) => setAppNames((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
-                        placeholder={`app_${index + 1}`}
-                      />
-                    </label>
-                  ))}
-                </div>
+            <div className="django-apps field-wide">
+              <SelectField
+                label="Number of Django apps (--apps)"
+                value={String(appNames.length)}
+                options={appCountOptions}
+                onChange={(value) => {
+                  const count = Number(value);
+                  setAppNames((current) => Array.from({ length: count }, (_, index) => current[index] || `app_${index + 1}`));
+                }}
+              />
+              <div className="django-app-list">
+                {appNames.map((name, index) => (
+                  <label key={`${index}-${name}`} className="field">
+                    <span>App {index + 1} name (--apps)</span>
+                    <input
+                      value={name}
+                      onChange={(event) => setAppNames((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
+                      placeholder={`app_${index + 1}`}
+                    />
+                  </label>
+                ))}
               </div>
-            )}
+            </div>
             <label className="field">
               <span>Output directory (--output-dir)</span>
               <input value={outputDir} onChange={(event) => setOutputDir(event.target.value)} placeholder="Current directory by default" disabled={createHere} />
             </label>
-            {framework === "django" && (
-              <label className="toggle-field">
-                <input type="checkbox" checked={drf} onChange={(event) => setDrf(event.target.checked)} />
-                <span>Enable Django REST Framework (--drf)</span>
-              </label>
-            )}
+            <label className="toggle-field">
+              <input type="checkbox" checked={drf} onChange={(event) => setDrf(event.target.checked)} />
+              <span>Enable Django REST Framework (--drf)</span>
+            </label>
             <div className="capability-panel field-wide">
               <div className="capability-heading">
                 <span>Generation capabilities</span>
@@ -519,7 +496,7 @@ function DemoWindow({ variant, label }: { variant: "init" | "choose" | "ship"; l
       <>
         <span className="demo-command">$ init-app my-project</span>
         <span className="demo-line">
-          checking blueprint <b>fastapi</b>
+          checking blueprint <b>django</b>
         </span>
         <span className="demo-line">
           preparing environment <b>uv</b>
@@ -528,7 +505,7 @@ function DemoWindow({ variant, label }: { variant: "init" | "choose" | "ship"; l
     ) : variant === "choose" ? (
       <>
         <span className="demo-command">project brief</span>
-        <span className="demo-chip">fastapi</span>
+        <span className="demo-chip">django</span>
         <span className="demo-chip">production</span>
         <span className="demo-chip">postgresql</span>
       </>
