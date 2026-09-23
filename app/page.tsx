@@ -201,18 +201,28 @@ export default function Page() {
             <li>Open source friendly</li>
           </ul>
 
-          <a
-            className="downloads-badge"
-            href="https://pepy.tech/projects/init-app"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="View Init App PyPI downloads"
-          >
-            <img
-              src="https://static.pepy.tech/personalized-badge/init-app?period=total&units=NONE&left_color=YELLOW&right_color=ORANGE&left_text=downloads"
-              alt="PyPI downloads"
-            />
-          </a>
+          <div className="downloads-proof">
+            <div className="downloads-proof-heading">
+              <span className="downloads-mark" aria-hidden="true">↓</span>
+              <div>
+                <p className="downloads-kicker">PyPI package</p>
+                <p className="downloads-title">Built in public, downloaded by builders.</p>
+              </div>
+            </div>
+            <a
+              className="downloads-badge"
+              href="https://pepy.tech/projects/init-app"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="View Init App download history on Pepy"
+            >
+              <img
+                src="https://static.pepy.tech/personalized-badge/init-app?period=total&units=NONE&left_color=YELLOW&right_color=ORANGE&left_text=downloads"
+                alt="Init App total PyPI downloads"
+              />
+              <span>View download history <ArrowUpRight size={13} /></span>
+            </a>
+          </div>
         </div>
 
         <div className="hero-visual">
