@@ -18,10 +18,11 @@ import {
 
 const MCP_URL = "https://initapp.fastmcp.app/mcp";
 const MCP_INSPECTOR_COMMAND = `npx @modelcontextprotocol/inspector ${MCP_URL}`;
-const frameworks = [
-  "fastapi", "flask", "django", "bottle", "sanic", "falcon", "tornado", "pyramid",
-  "base", "hp_cli", "data_pipeline", "dbt_analytics", "mlops_core", "rag_ai", "mcp",
+const blueprintGroups = [
+  { label: "Web blueprints", options: ["fastapi", "flask", "django", "bottle", "sanic", "falcon", "tornado", "pyramid"] },
+  { label: "Specialized blueprints", options: ["base", "hp_cli", "data_pipeline", "dbt_analytics", "mlops_core", "rag_ai", "mcp"] },
 ];
+const frameworks = blueprintGroups.flatMap((group) => group.options);
 const strategies = ["standard", "production", "auto_config", "custom"];
 const databases = ["sqlite", "postgresql", "mysql", "mongodb", "none"];
 const frameworkServers: Record<string, string[]> = {
@@ -97,15 +98,15 @@ const steps = [
 ];
 
 const stats = [
-  { value: "1", label: "Django blueprint" },
+  { value: String(frameworks.length), label: "project blueprints" },
   { value: "4", label: "strategies" },
-  { value: "1", label: "command flow" },
-  { value: "∞", label: "ideas" },
+  { value: "5", label: "database choices" },
+  { value: "6", label: "project layers" },
 ];
 
 export default function Page() {
   const [projectName, setProjectName] = useState("my-project");
-  const [framework, setFramework] = useState("django");
+  const [framework, setFramework] = useState("fastapi");
   const [strategy, setStrategy] = useState("standard");
   const [database, setDatabase] = useState("sqlite");
   const [server, setServer] = useState("uvicorn");
@@ -125,14 +126,31 @@ export default function Page() {
   const selectedServer = serverOptions.includes(server) ? server : serverOptions[0];
   const primaryAppName = appNames[0] || "core_app";
   const drfFlag = framework === "django" && drf ? " --drf" : "";
-  const gitignoreOptions = ["framework", "python", "django", "minimal"];
+  const gitignoreOptions = ["framework", "python", "django", "node", "cpp", "minimal"];
   const selectedGitignorePreset = gitignoreOptions.includes(gitignorePreset) ? gitignorePreset : "framework";
+  const folderList = parsePathList(folders);
+  const packageList = parsePathList(packages);
+  const projectNameIsValid = /^[A-Za-z][A-Za-z0-9_-]{0,62}$/.test(projectName);
+  const djangoAppsAreValid = framework !== "django" || appNames.every((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name));
+  const customPathsAreValid = strategy !== "custom" || (
+    folderList.every(isSafeRelativePath)
+    && packageList.every(isSafeRelativePath)
+    && packageList.every((folder) => folderList.includes(folder))
+  );
+  const commandIsValid = projectNameIsValid && djangoAppsAreValid && customPathsAreValid;
+  const commandWarning = !projectNameIsValid
+    ? "Project names must start with a letter and use only letters, numbers, hyphens, or underscores."
+    : !djangoAppsAreValid
+      ? "Each Django app name must be a valid Python package identifier."
+      : !customPathsAreValid
+        ? "Custom packages must be safe relative paths and must also be listed in Folders."
+        : null;
 
   const command = useMemo(
     () => {
       const parts = [
         "init-app",
-        projectName || "project-name",
+        projectName,
         "--framework", framework,
         "--type", strategy,
         "--db", database,
@@ -143,21 +161,22 @@ export default function Page() {
       ];
       if (drfFlag) parts.push(drfFlag.trim());
       if (framework === "django") parts.push("--apps", ...appNames);
-      if (strategy === "custom" && folders.trim()) parts.push("--folders", ...folders.split(",").map((folder) => folder.trim()).filter(Boolean));
-      if (strategy === "custom" && packages.trim()) parts.push("--packages", ...packages.split(",").map((folder) => folder.trim()).filter(Boolean));
+      if (strategy === "custom" && folderList.length) parts.push("--folders", ...folderList);
+      if (strategy === "custom" && packageList.length) parts.push("--packages", ...packageList);
       if (!createRagContext) parts.push("--no-rag-context");
       if (createHere) parts.push("--here");
-      else if (outputDir.trim()) parts.push("--output-dir", outputDir.trim());
+      else if (outputDir.trim()) parts.push("--output-dir", shellArgument(outputDir.trim()));
       fileGroups.forEach(({ key, flag }) => {
         const files = selectedFiles[key] ?? [];
         if (files.length) parts.push(flag, ...files);
       });
       return parts.join(" ");
     },
-    [projectName, framework, strategy, database, selectedServer, virtualEnv, appNames, primaryAppName, selectedGitignorePreset, drfFlag, folders, packages, createRagContext, createHere, outputDir, selectedFiles],
+    [projectName, framework, strategy, database, selectedServer, virtualEnv, appNames, primaryAppName, selectedGitignorePreset, drfFlag, folderList, packageList, createRagContext, createHere, outputDir, selectedFiles],
   );
 
   const copyCommand = async () => {
+    if (!commandIsValid) return;
     await navigator.clipboard.writeText(command);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
@@ -241,7 +260,7 @@ export default function Page() {
               <span>View download history <ArrowUpRight size={13} /></span>
             </a>
           </div>
-          <DemoWindow variant="init" label="01 / initialize" />
+          <DemoWindow variant="init" label="Blueprint preview" />
         </div>
       </section>
 
@@ -300,7 +319,7 @@ export default function Page() {
             <p className="eyebrow">Project brief</p>
             <h2>Tailor the first command to your idea.</h2>
           </div>
-          <span className="step-count">01 / 03</span>
+          <span className="step-count">{frameworks.length} blueprints</span>
         </div>
 
         <div className="builder-grid">
@@ -309,7 +328,7 @@ export default function Page() {
               <span>Project name</span>
               <input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="my-project" />
             </label>
-            <SelectField label="Framework (--framework)" value={framework} options={frameworks} onChange={setFramework} />
+            <BlueprintSelect value={framework} onChange={setFramework} />
             <SelectField label="Build strategy (--type)" value={strategy} options={strategies} onChange={setStrategy} />
             <SelectField label="Database (--db)" value={database} options={databases} onChange={setDatabase} />
             <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />
@@ -342,7 +361,7 @@ export default function Page() {
             )}
             <label className="field">
               <span>Output directory (--output-dir)</span>
-              <input value={outputDir} onChange={(event) => setOutputDir(event.target.value)} placeholder="Current directory by default" disabled={createHere} />
+              <input value={outputDir} onChange={(event) => setOutputDir(event.target.value)} placeholder="Uses your Init App path settings by default" disabled={createHere} />
             </label>
             {framework === "django" && (
               <label className="toggle-field">
@@ -416,12 +435,14 @@ export default function Page() {
               <span className="prompt-symbol">$</span> {command}
             </pre>
 
-            <button className="copy-action" onClick={copyCommand}>
+            <button className="copy-action" onClick={copyCommand} disabled={!commandIsValid}>
               {copied ? <Check size={15} /> : <Copy size={15} />}
               {copied ? "Copied" : "Copy command"}
             </button>
 
-            <p className="command-note">Choose whether Init App creates the virtual environment. Select the package workflow yourself after the project is generated.</p>
+            <p className={commandWarning ? "command-note command-warning" : "command-note"}>
+              {commandWarning ?? "This preview uses valid Init App flags for the selected blueprint."}
+            </p>
           </div>
         </div>
       </section>
@@ -514,6 +535,39 @@ function SelectField({
   );
 }
 
+function BlueprintSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="field">
+      <span>Blueprint (--framework)</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)}>
+        {blueprintGroups.map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.options.map((option) => (
+              <option key={option} value={option}>{formatOptionLabel(option)}</option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function parsePathList(value: string) {
+  return value.split(",").map((path) => path.trim()).filter(Boolean);
+}
+
+function isSafeRelativePath(value: string) {
+  const normalized = value.replaceAll("\\", "/");
+  const segments = normalized.split("/");
+  return !normalized.startsWith("/")
+    && !normalized.includes(":")
+    && segments.every((segment) => segment !== "" && segment !== "." && segment !== "..");
+}
+
+function shellArgument(value: string) {
+  return /^[A-Za-z0-9_./:=@+-]+$/.test(value) ? value : `'${value.replaceAll("'", "'\\''")}'`;
+}
+
 function formatOptionLabel(option: string) {
   const friendlyNames: Record<string, string> = {
     na: "not applicable",
@@ -530,10 +584,10 @@ function DemoWindow({ variant, label }: { variant: "init" | "choose" | "ship"; l
       <>
         <span className="demo-command">$ init-app my-project</span>
         <span className="demo-line">
-          checking blueprint <b>django</b>
+          checking blueprint <b>fastapi</b>
         </span>
         <span className="demo-line">
-          preparing environment <b>uv</b>
+          preparing server <b>uvicorn</b>
         </span>
       </>
     ) : variant === "choose" ? (
