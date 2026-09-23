@@ -18,11 +18,28 @@ import {
 
 const MCP_URL = "https://initapp.fastmcp.app/mcp";
 const MCP_INSPECTOR_COMMAND = `npx @modelcontextprotocol/inspector ${MCP_URL}`;
-const frameworks = ["django"];
+const frameworks = [
+  "fastapi", "flask", "django", "bottle", "sanic", "falcon", "tornado", "pyramid",
+  "base", "hp_cli", "data_pipeline", "dbt_analytics", "mlops_core", "rag_ai", "mcp",
+];
 const strategies = ["standard", "production", "auto_config", "custom"];
 const databases = ["sqlite", "postgresql", "mysql", "mongodb", "none"];
 const frameworkServers: Record<string, string[]> = {
+  fastapi: ["uvicorn", "gunicorn"],
+  flask: ["gunicorn", "waitress", "gevent", "wsgiref", "na"],
   django: ["gunicorn", "waitress", "wsgiref"],
+  bottle: ["waitress", "gevent", "wsgiref", "na"],
+  sanic: ["na"],
+  falcon: ["gunicorn", "waitress", "wsgiref"],
+  tornado: ["na"],
+  pyramid: ["waitress", "gunicorn", "wsgiref"],
+  base: ["na"],
+  hp_cli: ["na"],
+  data_pipeline: ["na"],
+  dbt_analytics: ["na"],
+  mlops_core: ["na"],
+  rag_ai: ["na"],
+  mcp: ["na"],
 };
 const virtualEnvOptions = ["y", "n"];
 const appCountOptions = Array.from({ length: 10 }, (_, index) => String(index + 1));
@@ -107,7 +124,7 @@ export default function Page() {
   const serverOptions = frameworkServers[framework] ?? ["na"];
   const selectedServer = serverOptions.includes(server) ? server : serverOptions[0];
   const primaryAppName = appNames[0] || "core_app";
-  const drfFlag = drf ? " --drf" : "";
+  const drfFlag = framework === "django" && drf ? " --drf" : "";
   const gitignoreOptions = ["framework", "python", "django", "minimal"];
   const selectedGitignorePreset = gitignoreOptions.includes(gitignorePreset) ? gitignorePreset : "framework";
 
@@ -125,7 +142,7 @@ export default function Page() {
         "--gitignore-preset", selectedGitignorePreset,
       ];
       if (drfFlag) parts.push(drfFlag.trim());
-      parts.push("--apps", ...appNames);
+      if (framework === "django") parts.push("--apps", ...appNames);
       if (strategy === "custom" && folders.trim()) parts.push("--folders", ...folders.split(",").map((folder) => folder.trim()).filter(Boolean));
       if (strategy === "custom" && packages.trim()) parts.push("--packages", ...packages.split(",").map((folder) => folder.trim()).filter(Boolean));
       if (!createRagContext) parts.push("--no-rag-context");
@@ -298,37 +315,41 @@ export default function Page() {
             <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />
             <SelectField label="Create virtual env (--venv)" value={virtualEnv} options={virtualEnvOptions} onChange={setVirtualEnv} />
             <SelectField label="Gitignore preset (--gitignore-preset)" value={selectedGitignorePreset} options={gitignoreOptions} onChange={setGitignorePreset} />
-            <div className="django-apps field-wide">
-              <SelectField
-                label="Number of Django apps (--apps)"
-                value={String(appNames.length)}
-                options={appCountOptions}
-                onChange={(value) => {
-                  const count = Number(value);
-                  setAppNames((current) => Array.from({ length: count }, (_, index) => current[index] || `app_${index + 1}`));
-                }}
-              />
-              <div className="django-app-list">
-                {appNames.map((name, index) => (
-                  <label key={`${index}-${name}`} className="field">
-                    <span>App {index + 1} name (--apps)</span>
-                    <input
-                      value={name}
-                      onChange={(event) => setAppNames((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
-                      placeholder={`app_${index + 1}`}
-                    />
-                  </label>
-                ))}
+            {framework === "django" && (
+              <div className="django-apps field-wide">
+                <SelectField
+                  label="Number of Django apps (--apps)"
+                  value={String(appNames.length)}
+                  options={appCountOptions}
+                  onChange={(value) => {
+                    const count = Number(value);
+                    setAppNames((current) => Array.from({ length: count }, (_, index) => current[index] || `app_${index + 1}`));
+                  }}
+                />
+                <div className="django-app-list">
+                  {appNames.map((name, index) => (
+                    <label key={`${index}-${name}`} className="field">
+                      <span>App {index + 1} name (--apps)</span>
+                      <input
+                        value={name}
+                        onChange={(event) => setAppNames((current) => current.map((item, itemIndex) => itemIndex === index ? event.target.value : item))}
+                        placeholder={`app_${index + 1}`}
+                      />
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <label className="field">
               <span>Output directory (--output-dir)</span>
               <input value={outputDir} onChange={(event) => setOutputDir(event.target.value)} placeholder="Current directory by default" disabled={createHere} />
             </label>
-            <label className="toggle-field">
-              <input type="checkbox" checked={drf} onChange={(event) => setDrf(event.target.checked)} />
-              <span>Enable Django REST Framework (--drf)</span>
-            </label>
+            {framework === "django" && (
+              <label className="toggle-field">
+                <input type="checkbox" checked={drf} onChange={(event) => setDrf(event.target.checked)} />
+                <span>Enable Django REST Framework (--drf)</span>
+              </label>
+            )}
             <div className="capability-panel field-wide">
               <div className="capability-heading">
                 <span>Generation capabilities</span>
