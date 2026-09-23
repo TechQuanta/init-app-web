@@ -345,9 +345,11 @@ footer a:hover {
 .hero-visual {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 500px;
+  min-height: 0;
+  padding: 8px 0 20px;
 }
 
 .demo-window {
@@ -359,7 +361,7 @@ footer a:hover {
   background: linear-gradient(180deg, rgba(35, 30, 27, 0.97), rgba(20, 17, 15, 0.97));
   box-shadow: 0 30px 80px rgba(27, 24, 20, 0.14);
   overflow: hidden;
-  margin-top: 86px;
+  margin-top: 24px;
   animation: rise 0.7s ease-out;
 }
 
@@ -456,8 +458,8 @@ footer a:hover {
 }
 
 .floating-two {
-  right: 0;
-  top: 54px;
+  right: -8px;
+  top: 190px;
 }
 
 .stats-grid {
@@ -1079,7 +1081,7 @@ footer a {
   }
 
   .hero-visual {
-    min-height: 470px;
+    padding-top: 0;
   }
 
   .downloads-proof {
@@ -1092,6 +1094,10 @@ footer a {
 
   .demo-window {
     margin-top: 22px;
+  }
+
+  .floating-card {
+    display: none;
   }
 
   footer {
