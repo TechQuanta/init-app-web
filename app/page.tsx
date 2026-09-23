@@ -200,6 +200,19 @@ export default function Page() {
             <li>Tool-ready</li>
             <li>Open source friendly</li>
           </ul>
+
+          <a
+            className="downloads-badge"
+            href="https://pepy.tech/projects/init-app"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="View Init App PyPI downloads"
+          >
+            <img
+              src="https://static.pepy.tech/personalized-badge/init-app?period=total&units=NONE&left_color=YELLOW&right_color=ORANGE&left_text=downloads"
+              alt="PyPI downloads"
+            />
+          </a>
         </div>
 
         <div className="hero-visual">

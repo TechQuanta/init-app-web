@@ -260,6 +260,23 @@ footer a:hover {
   text-transform: uppercase;
 }
 
+.downloads-badge {
+  display: inline-flex;
+  margin-top: 18px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.downloads-badge:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+}
+
+.downloads-badge img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .hero-visual {
   position: relative;
   display: flex;
