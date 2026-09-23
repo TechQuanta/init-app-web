@@ -347,9 +347,9 @@ footer a:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 0;
-  padding: 8px 0 20px;
+  justify-content: flex-start;
+  min-height: 410px;
+  padding: 132px 0 20px;
 }
 
 .demo-window {
@@ -361,7 +361,7 @@ footer a:hover {
   background: linear-gradient(180deg, rgba(35, 30, 27, 0.97), rgba(20, 17, 15, 0.97));
   box-shadow: 0 30px 80px rgba(27, 24, 20, 0.14);
   overflow: hidden;
-  margin-top: 24px;
+  margin-top: 0;
   animation: rise 0.7s ease-out;
 }
 
@@ -435,31 +435,6 @@ footer a:hover {
 
 .demo-success {
   color: #f0c99a;
-}
-
-.floating-card {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.66);
-  color: var(--ink);
-  font-size: 11px;
-  font-weight: 700;
-  box-shadow: 0 22px 44px rgba(27, 24, 20, 0.08);
-}
-
-.floating-one {
-  bottom: 18px;
-  left: 34px;
-}
-
-.floating-two {
-  right: -8px;
-  top: 190px;
 }
 
 .stats-grid {
@@ -1081,6 +1056,7 @@ footer a {
   }
 
   .hero-visual {
+    min-height: 0;
     padding-top: 0;
   }
 
@@ -1094,10 +1070,6 @@ footer a {
 
   .demo-window {
     margin-top: 22px;
-  }
-
-  .floating-card {
-    display: none;
   }
 
   footer {

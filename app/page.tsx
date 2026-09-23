@@ -10,12 +10,10 @@ import {
   Github,
   HeartHandshake,
   Layers3,
-  PlugZap,
   Rocket,
   ServerCog,
   Sparkles,
   Terminal,
-  Wand2,
 } from "lucide-react";
 
 const MCP_URL = "https://initapp.fastmcp.app/mcp";
@@ -227,14 +225,6 @@ export default function Page() {
             </a>
           </div>
           <DemoWindow variant="init" label="01 / initialize" />
-          <div className="floating-card floating-one">
-            <Wand2 size={16} />
-            <span>Scaffold smarter</span>
-          </div>
-          <div className="floating-card floating-two">
-            <PlugZap size={16} />
-            <span>MCP ready</span>
-          </div>
         </div>
       </section>
 
