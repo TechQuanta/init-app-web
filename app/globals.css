@@ -261,8 +261,12 @@ footer a:hover {
 }
 
 .downloads-proof {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
   width: min(100%, 440px);
-  margin-top: 26px;
+  max-width: 360px;
   padding: 18px 20px 16px;
   border: 1px solid rgba(87, 74, 58, 0.2);
   border-radius: 16px;
@@ -343,7 +347,7 @@ footer a:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 420px;
+  min-height: 500px;
 }
 
 .demo-window {
@@ -355,15 +359,15 @@ footer a:hover {
   background: linear-gradient(180deg, rgba(35, 30, 27, 0.97), rgba(20, 17, 15, 0.97));
   box-shadow: 0 30px 80px rgba(27, 24, 20, 0.14);
   overflow: hidden;
+  margin-top: 86px;
   animation: rise 0.7s ease-out;
 }
 
 .demo-window::after {
   position: absolute;
   inset: 0;
-  background: linear-gradient(115deg, transparent 20%, rgba(201, 138, 75, 0.12) 45%, transparent 70%);
+  background: linear-gradient(115deg, transparent 20%, rgba(201, 138, 75, 0.08) 45%, transparent 70%);
   content: "";
-  animation: scan 5.2s ease-in-out infinite;
   pointer-events: none;
 }
 
@@ -409,16 +413,6 @@ footer a:hover {
 
 .demo-line {
   color: #f2ece5;
-  opacity: 0;
-  animation: reveal-line 5s ease-in-out infinite;
-}
-
-.demo-line:nth-child(2) {
-  animation-delay: 0.5s;
-}
-
-.demo-line:nth-child(3) {
-  animation-delay: 1.1s;
 }
 
 .demo-line b {
@@ -435,20 +429,6 @@ footer a:hover {
   border-radius: 999px;
   background: rgba(201, 138, 75, 0.1);
   color: #e6bd87;
-  opacity: 0;
-  animation: reveal-line 5s ease-in-out infinite;
-}
-
-.demo-chip:nth-child(2) {
-  animation-delay: 0.35s;
-}
-
-.demo-chip:nth-child(3) {
-  animation-delay: 0.8s;
-}
-
-.demo-chip:nth-child(4) {
-  animation-delay: 1.25s;
 }
 
 .demo-success {
@@ -1000,35 +980,6 @@ footer a {
   }
 }
 
-@keyframes scan {
-  0%,
-  20% {
-    transform: translateX(-110%);
-  }
-  58%,
-  100% {
-    transform: translateX(110%);
-  }
-}
-
-@keyframes reveal-line {
-  0%,
-  12% {
-    opacity: 0;
-    transform: translateY(5px);
-  }
-  24%,
-  74% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  86%,
-  100% {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-}
-
 @media (max-width: 900px) {
   .hero {
     grid-template-columns: 1fr;
@@ -1065,6 +1016,10 @@ footer a {
 
   .mcp-inspector-section {
     grid-template-columns: 1fr;
+  }
+
+  .downloads-proof {
+    right: 12px;
   }
 }
 
@@ -1121,6 +1076,22 @@ footer a {
   .step-card,
   .contribute-card {
     padding: 18px;
+  }
+
+  .hero-visual {
+    min-height: 470px;
+  }
+
+  .downloads-proof {
+    position: relative;
+    top: auto;
+    right: auto;
+    align-self: stretch;
+    max-width: none;
+  }
+
+  .demo-window {
+    margin-top: 22px;
   }
 
   footer {

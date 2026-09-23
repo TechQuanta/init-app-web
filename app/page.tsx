@@ -201,6 +201,9 @@ export default function Page() {
             <li>Open source friendly</li>
           </ul>
 
+        </div>
+
+        <div className="hero-visual">
           <div className="downloads-proof">
             <div className="downloads-proof-heading">
               <span className="downloads-mark" aria-hidden="true">↓</span>
@@ -223,9 +226,6 @@ export default function Page() {
               <span>View download history <ArrowUpRight size={13} /></span>
             </a>
           </div>
-        </div>
-
-        <div className="hero-visual">
           <DemoWindow variant="init" label="01 / initialize" />
           <div className="floating-card floating-one">
             <Wand2 size={16} />
