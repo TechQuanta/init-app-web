@@ -25,6 +25,11 @@ const blueprintGroups = [
 const frameworks = blueprintGroups.flatMap((group) => group.options);
 const strategies = ["standard", "production", "auto_config", "custom"];
 const databases = ["sqlite", "postgresql", "mysql", "mongodb", "none"];
+const dbtAdapters = [
+  "snowflake", "databricks", "bigquery", "redshift", "postgres", "duckdb",
+  "spark", "athena", "trino", "clickhouse", "dremio", "exasol", "oracle",
+  "teradata", "sqlserver", "mysql", "synapse", "fabric", "motherduck", "custom",
+];
 const frameworkServers: Record<string, string[]> = {
   fastapi: ["uvicorn", "gunicorn"],
   flask: ["gunicorn", "waitress", "gevent", "wsgiref", "na"],
@@ -112,6 +117,11 @@ export default function Page() {
   const [server, setServer] = useState("uvicorn");
   const [virtualEnv, setVirtualEnv] = useState("y");
   const [drf, setDrf] = useState(false);
+  const [dbtAdapter, setDbtAdapter] = useState("duckdb");
+  const [dbtAdapterPackage, setDbtAdapterPackage] = useState("");
+  const [dbtAdapterType, setDbtAdapterType] = useState("");
+  const [dbtProfile, setDbtProfile] = useState("");
+  const [dbtTarget, setDbtTarget] = useState("dev");
   const [appNames, setAppNames] = useState(["core_app"]);
   const [folders, setFolders] = useState("");
   const [packages, setPackages] = useState("");
@@ -126,22 +136,32 @@ export default function Page() {
   const selectedServer = serverOptions.includes(server) ? server : serverOptions[0];
   const primaryAppName = appNames[0] || "core_app";
   const drfFlag = framework === "django" && drf ? " --drf" : "";
-  const gitignoreOptions = ["framework", "python", "django", "node", "cpp", "minimal"];
+  const gitignoreOptions = ["framework", "python", "django", "dbt", "node", "cpp", "minimal"];
   const selectedGitignorePreset = gitignoreOptions.includes(gitignorePreset) ? gitignorePreset : "framework";
   const folderList = parsePathList(folders);
   const packageList = parsePathList(packages);
   const projectNameIsValid = /^[A-Za-z][A-Za-z0-9_-]{0,62}$/.test(projectName);
   const djangoAppsAreValid = framework !== "django" || appNames.every((name) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name));
+  const dbtOptionsAreValid = framework !== "dbt_analytics" || (
+    (dbtAdapter !== "custom" || (
+      /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(dbtAdapterPackage)
+      && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(dbtAdapterType)
+    ))
+    && (!dbtProfile.trim() || /^[A-Za-z_][A-Za-z0-9_-]*$/.test(dbtProfile.trim()))
+    && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(dbtTarget)
+  );
   const customPathsAreValid = strategy !== "custom" || (
     folderList.every(isSafeRelativePath)
     && packageList.every(isSafeRelativePath)
     && packageList.every((folder) => folderList.includes(folder))
   );
-  const commandIsValid = projectNameIsValid && djangoAppsAreValid && customPathsAreValid;
+  const commandIsValid = projectNameIsValid && djangoAppsAreValid && dbtOptionsAreValid && customPathsAreValid;
   const commandWarning = !projectNameIsValid
     ? "Project names must start with a letter and use only letters, numbers, hyphens, or underscores."
     : !djangoAppsAreValid
       ? "Each Django app name must be a valid Python package identifier."
+      : !dbtOptionsAreValid
+        ? "A custom dbt adapter needs a safe PyPI package name and dbt adapter type."
       : !customPathsAreValid
         ? "Custom packages must be safe relative paths and must also be listed in Folders."
         : null;
@@ -161,6 +181,15 @@ export default function Page() {
       ];
       if (drfFlag) parts.push(drfFlag.trim());
       if (framework === "django") parts.push("--apps", ...appNames);
+      if (framework === "dbt_analytics") {
+        parts.push("--dbt-adapter", dbtAdapter);
+        if (dbtAdapter === "custom") {
+          parts.push("--dbt-adapter-package", shellArgument(dbtAdapterPackage));
+          parts.push("--dbt-adapter-type", dbtAdapterType);
+        }
+        if (dbtProfile.trim()) parts.push("--dbt-profile", dbtProfile.trim());
+        if (dbtTarget !== "dev") parts.push("--dbt-target", dbtTarget);
+      }
       if (strategy === "custom" && folderList.length) parts.push("--folders", ...folderList);
       if (strategy === "custom" && packageList.length) parts.push("--packages", ...packageList);
       if (!createRagContext) parts.push("--no-rag-context");
@@ -172,7 +201,7 @@ export default function Page() {
       });
       return parts.join(" ");
     },
-    [projectName, framework, strategy, database, selectedServer, virtualEnv, appNames, primaryAppName, selectedGitignorePreset, drfFlag, folderList, packageList, createRagContext, createHere, outputDir, selectedFiles],
+    [projectName, framework, strategy, database, selectedServer, virtualEnv, appNames, primaryAppName, selectedGitignorePreset, drfFlag, dbtAdapter, dbtAdapterPackage, dbtAdapterType, dbtProfile, dbtTarget, folderList, packageList, createRagContext, createHere, outputDir, selectedFiles],
   );
 
   const copyCommand = async () => {
@@ -328,7 +357,10 @@ export default function Page() {
               <span>Project name</span>
               <input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="my-project" />
             </label>
-            <BlueprintSelect value={framework} onChange={setFramework} />
+            <BlueprintSelect value={framework} onChange={(value) => {
+              setFramework(value);
+              if (value === "dbt_analytics") setDatabase("none");
+            }} />
             <SelectField label="Build strategy (--type)" value={strategy} options={strategies} onChange={setStrategy} />
             <SelectField label="Database (--db)" value={database} options={databases} onChange={setDatabase} />
             <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />
@@ -357,6 +389,34 @@ export default function Page() {
                     </label>
                   ))}
                 </div>
+              </div>
+            )}
+            {framework === "dbt_analytics" && (
+              <div className="django-apps field-wide">
+                <SelectField label="dbt data-platform adapter (--dbt-adapter)" value={dbtAdapter} options={dbtAdapters} onChange={setDbtAdapter} />
+                {dbtAdapter === "custom" && (
+                  <div className="django-app-list">
+                    <label className="field">
+                      <span>Adapter PyPI package (--dbt-adapter-package)</span>
+                      <input value={dbtAdapterPackage} onChange={(event) => setDbtAdapterPackage(event.target.value)} placeholder="dbt-your-provider" />
+                    </label>
+                    <label className="field">
+                      <span>dbt adapter type (--dbt-adapter-type)</span>
+                      <input value={dbtAdapterType} onChange={(event) => setDbtAdapterType(event.target.value)} placeholder="your_provider" />
+                    </label>
+                  </div>
+                )}
+                <div className="django-app-list">
+                  <label className="field">
+                    <span>User dbt profile (--dbt-profile)</span>
+                    <input value={dbtProfile} onChange={(event) => setDbtProfile(event.target.value)} placeholder="Defaults to the project name" />
+                  </label>
+                  <label className="field">
+                    <span>Profile target (--dbt-target)</span>
+                    <input value={dbtTarget} onChange={(event) => setDbtTarget(event.target.value)} placeholder="dev" />
+                  </label>
+                </div>
+                <p className="field-hint">Init App uses native <code>dbt init</code>, installs the selected adapter, and creates or preserves <code>~/.dbt/profiles.yml</code> with environment-variable placeholders only.</p>
               </div>
             )}
             <label className="field">

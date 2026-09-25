@@ -637,6 +637,13 @@ footer a:hover {
   opacity: 0.55;
 }
 
+.field-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .toggle-field {
   display: flex;
   align-items: center;
