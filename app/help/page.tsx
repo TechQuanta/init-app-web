@@ -21,8 +21,18 @@ const sections = [
       ["--db", "Optional", "Selects sqlite, postgresql, mysql, mongodb, or none.", "Use sqlite for local work, PostgreSQL for production relational workloads, or none for framework-only projects.", "--db postgresql"],
       ["--drf", "Optional", "Enables Django REST Framework integration; Django only.", "Use when Django is serving an API with serializers, routers, and REST settings.", "--drf"],
       ["--venv y|n", "Optional", "Controls whether Init App creates a project virtual environment.", "Enable isolation for most local and team projects. Package tooling remains the user's choice.", "--venv y"],
-      ["--dbt-adapter", "dbt analytics only", "Selects a warehouse adapter such as Snowflake, Databricks, BigQuery, Redshift, Postgres, or DuckDB.", "Init App installs the adapter and uses native dbt initialization; use custom for any compatible PyPI adapter.", "--dbt-adapter snowflake"],
-      ["--dbt-profile / --dbt-target", "dbt analytics only", "Creates or preserves the selected user profile and target in ~/.dbt/profiles.yml.", "Credentials stay in environment variables, never in generated files or command output.", "--dbt-profile finance --dbt-target dev"],
+      ["--dbt-adapter", "dbt analytics only", "Selects a warehouse adapter such as Snowflake, Databricks, BigQuery, Redshift, Postgres, or DuckDB.", "Init App checks dbt-core and the selected adapter in the chosen environment before native dbt initialization; use custom for any compatible PyPI adapter.", "--dbt-adapter snowflake"],
+      ["--dbt-adapter-package / --dbt-adapter-type", "dbt custom adapter only", "Defines the PyPI package and dbt adapter type for a provider outside the built-in catalog.", "Use both flags together only with --dbt-adapter custom.", "--dbt-adapter custom --dbt-adapter-package dbt-acme --dbt-adapter-type acme"],
+      ["--dbt-profile / --dbt-target", "dbt analytics only", "Creates or preserves the selected profile in project .dbt/profiles.yml and ~/.dbt/profiles.yml.", "Credentials stay in environment variables, never in generated files or command output. dbt reads profiles.yml, not user.yml.", "--dbt-profile finance --dbt-target dev"],
+    ],
+  },
+  {
+    title: "What Init App runs",
+    description: "The generator uses framework-native commands only after its selected environment is available and dependencies are checked.",
+    rows: [
+      ["Django bootstrap", "Django only", "Creates or reuses .venv, installs requirements, then runs Django's startproject and startapp commands.", "Generated manage.py reuses .venv automatically, so team commands do not accidentally use a global Django install.", "python -m django startproject billing ."],
+      ["dbt bootstrap", "dbt analytics only", "Creates or reuses the selected environment, checks dbt-core and the selected adapter, then runs native dbt init without interactive profile setup.", "The generated project keeps a portable .dbt/profiles.yml and uses --profiles-dir .dbt for dbt debug, deps, and run.", "python -m dbt.cli.main init --skip-profile-setup finance_transform"],
+      ["Profile verification", "dbt analytics only", "Writes credential-free environment-variable placeholders and preserves an existing named profile instead of overwriting it.", "Run dbt debug before dbt run; configure provider credentials in your environment or secret manager.", "dbt debug --profiles-dir .dbt"],
     ],
   },
   {

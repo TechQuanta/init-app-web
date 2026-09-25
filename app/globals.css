@@ -314,7 +314,7 @@ footer a:hover {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-top: 16px;
+  margin-top: 24px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
   transition: transform 0.2s ease, filter 0.2s ease;
@@ -686,6 +686,98 @@ footer a:hover {
   gap: 12px;
 }
 
+.dbt-workbench {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid rgba(37, 103, 114, 0.3);
+  border-radius: 16px;
+  background: radial-gradient(circle at top right, rgba(78, 185, 184, 0.16), transparent 36%), linear-gradient(135deg, rgba(226, 245, 242, 0.88), rgba(241, 248, 246, 0.55));
+}
+
+.dbt-workbench-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  color: #17646d;
+}
+
+.dbt-workbench-heading h3 {
+  margin: 7px 0 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  letter-spacing: -0.04em;
+}
+
+.dbt-status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dbt-status-grid > div {
+  display: grid;
+  gap: 5px;
+  min-height: 98px;
+  padding: 13px;
+  border: 1px solid rgba(26, 89, 98, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #1c7379;
+}
+
+.dbt-status-grid span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.dbt-status-grid strong {
+  color: var(--ink);
+  font: 700 11px/1.4 "SFMono-Regular", Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.dbt-check-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border-left: 3px solid #2d9c9c;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.52);
+}
+
+.dbt-check-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.dbt-check-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 11px;
+  border: 1px solid rgba(22, 99, 108, 0.24);
+  border-radius: 9px;
+  background: #1f6e75;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dbt-check-action:hover {
+  background: #185b61;
+}
+
 .capability-heading {
   display: flex;
   align-items: baseline;
@@ -1055,8 +1147,14 @@ footer a {
   .custom-fields,
   .capability-grid,
   .file-options,
-  .django-app-list {
+  .django-app-list,
+  .dbt-status-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dbt-check-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .field-wide {

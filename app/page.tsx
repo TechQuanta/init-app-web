@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ArrowUpRight,
   Check,
+  CheckCircle2,
   Copy,
   Database,
   Github,
@@ -135,6 +136,8 @@ export default function Page() {
   const serverOptions = frameworkServers[framework] ?? ["na"];
   const selectedServer = serverOptions.includes(server) ? server : serverOptions[0];
   const primaryAppName = appNames[0] || "core_app";
+  const dbtRuntimePackage = dbtAdapter === "custom" ? (dbtAdapterPackage || "your adapter") : `dbt-${dbtAdapter}`;
+  const dbtRuntimeTarget = virtualEnv === "y" ? "selected .venv" : "active Python";
   const drfFlag = framework === "django" && drf ? " --drf" : "";
   const gitignoreOptions = ["framework", "python", "django", "dbt", "node", "cpp", "minimal"];
   const selectedGitignorePreset = gitignoreOptions.includes(gitignorePreset) ? gitignorePreset : "framework";
@@ -173,12 +176,12 @@ export default function Page() {
         projectName,
         "--framework", framework,
         "--type", strategy,
-        "--db", database,
-        "--server", selectedServer,
-        "--venv", virtualEnv,
-        "--app-name", primaryAppName,
-        "--gitignore-preset", selectedGitignorePreset,
       ];
+      if (framework !== "dbt_analytics") {
+        parts.push("--db", database, "--server", selectedServer, "--app-name", primaryAppName);
+        if (selectedGitignorePreset !== "framework") parts.push("--gitignore-preset", selectedGitignorePreset);
+      }
+      if (virtualEnv !== "y") parts.push("--venv", virtualEnv);
       if (drfFlag) parts.push(drfFlag.trim());
       if (framework === "django") parts.push("--apps", ...appNames);
       if (framework === "dbt_analytics") {
@@ -359,13 +362,16 @@ export default function Page() {
             </label>
             <BlueprintSelect value={framework} onChange={(value) => {
               setFramework(value);
-              if (value === "dbt_analytics") setDatabase("none");
+              if (value === "dbt_analytics") {
+                setDatabase("none");
+                setGitignorePreset("dbt");
+              }
             }} />
             <SelectField label="Build strategy (--type)" value={strategy} options={strategies} onChange={setStrategy} />
-            <SelectField label="Database (--db)" value={database} options={databases} onChange={setDatabase} />
-            <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />
+            {framework !== "dbt_analytics" && <SelectField label="Database (--db)" value={database} options={databases} onChange={setDatabase} />}
+            {framework !== "dbt_analytics" && <SelectField label="Server (--server)" value={selectedServer} options={serverOptions} onChange={setServer} />}
             <SelectField label="Create virtual env (--venv)" value={virtualEnv} options={virtualEnvOptions} onChange={setVirtualEnv} />
-            <SelectField label="Gitignore preset (--gitignore-preset)" value={selectedGitignorePreset} options={gitignoreOptions} onChange={setGitignorePreset} />
+            {framework !== "dbt_analytics" && <SelectField label="Gitignore preset (--gitignore-preset)" value={selectedGitignorePreset} options={gitignoreOptions} onChange={setGitignorePreset} />}
             {framework === "django" && (
               <div className="django-apps field-wide">
                 <SelectField
@@ -392,7 +398,7 @@ export default function Page() {
               </div>
             )}
             {framework === "dbt_analytics" && (
-              <div className="django-apps field-wide">
+              <>
                 <SelectField label="dbt data-platform adapter (--dbt-adapter)" value={dbtAdapter} options={dbtAdapters} onChange={setDbtAdapter} />
                 {dbtAdapter === "custom" && (
                   <div className="django-app-list">
@@ -408,7 +414,7 @@ export default function Page() {
                 )}
                 <div className="django-app-list">
                   <label className="field">
-                    <span>User dbt profile (--dbt-profile)</span>
+                    <span>dbt profile (--dbt-profile)</span>
                     <input value={dbtProfile} onChange={(event) => setDbtProfile(event.target.value)} placeholder="Defaults to the project name" />
                   </label>
                   <label className="field">
@@ -416,8 +422,7 @@ export default function Page() {
                     <input value={dbtTarget} onChange={(event) => setDbtTarget(event.target.value)} placeholder="dev" />
                   </label>
                 </div>
-                <p className="field-hint">Init App uses native <code>dbt init</code>, installs the selected adapter, and creates or preserves <code>~/.dbt/profiles.yml</code> with environment-variable placeholders only.</p>
-              </div>
+              </>
             )}
             <label className="field">
               <span>Output directory (--output-dir)</span>
